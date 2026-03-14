@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MindPulse — Manager Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #fdf6ee; --surface: #ffffff; --accent1: #e07a5f; --accent2: #f2cc8f;
+      --accent3: #81b29a; --accent4: #6b8cba; --text: #2d2416; --muted: #8a7a66;
+      --border: #e8ddd0; --shadow: 0 4px 32px rgba(80,50,20,0.10);
+      --low-bg: #edf7f2; --low-text: #2d7a55; --low-border: #b2dfcc;
+      --med-bg: #fff8ec; --med-text: #9a6500; --med-border: #f2cc8f;
+      --high-bg: #fff0ee; --high-text: #c0392b; --high-border: #f0a898;
+    }
+    html, body { min-height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
+    body {
+      background-image:
+        radial-gradient(ellipse 80% 60% at 10% 0%, #ffe8d620 0%, transparent 60%),
+        radial-gradient(ellipse 60% 60% at 90% 100%, #d6eadf30 0%, transparent 60%);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 2.5rem; background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(14px); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo-area { display: flex; align-items: center; gap: 0.7rem; }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; box-shadow: 0 2px 12px rgba(224,122,95,0.30);
+    }
+    .logo-text { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+    .logo-text span { color: var(--accent1); }
+    .header-right { display: flex; align-items: center; gap: 1.4rem; }
+    .header-nav a {
+      font-size: 0.85rem; font-weight: 500; color: var(--muted);
+      text-decoration: none; padding: 0.4rem 0.9rem; border-radius: 8px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .header-nav a:hover, .header-nav a.active { background: rgba(224,122,95,0.12); color: var(--accent1); }
+    .header-clock { font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; }
+    .clock-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent3); animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.7); } }
+
+    main { max-width: 1060px; margin: 0 auto; padding: 2.8rem 1.5rem 5rem; }
+
+    /* Hero */
+    .hero { margin-bottom: 2.2rem; animation: fadeSlideDown 0.7s ease both; }
+    @keyframes fadeSlideDown { from { opacity:0; transform:translateY(-18px); } to { opacity:1; transform:translateY(0); } }
+    .hero-eyebrow { font-size: 0.78rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent1); margin-bottom: 0.45rem; }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.7rem, 4vw, 2.4rem); font-weight: 700; line-height: 1.2; }
+    .hero h1 em { font-style: italic; color: var(--accent1); }
+    .hero-sub { font-size: 0.88rem; color: var(--muted); margin-top: 0.4rem; }
+
+    /* Stat row */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1rem; margin-bottom: 1.4rem;
+      animation: fadeSlideDown 0.7s 0.1s ease both;
+    }
+    .stat-card {
+      background: var(--surface); border-radius: 18px; border: 1px solid var(--border);
+      box-shadow: var(--shadow); padding: 1.4rem 1.3rem;
+      display: flex; flex-direction: column; gap: 0.4rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 36px rgba(80,50,20,0.14); }
+    .stat-card-icon { font-size: 1.55rem; }
+    .stat-card-label { font-size: 0.71rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .stat-card-value { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; line-height: 1; }
+    .stat-card-sub { font-size: 0.75rem; color: var(--muted); }
+    .stat-card.t-main { border-top: 3px solid var(--accent4); }
+    .stat-card.t-low  { border-top: 3px solid var(--accent3); }
+    .stat-card.t-med  { border-top: 3px solid var(--accent2); }
+    .stat-card.t-high { border-top: 3px solid var(--accent1); }
+    .stat-card.t-low  .stat-card-value { color: var(--low-text); }
+    .stat-card.t-med  .stat-card-value { color: var(--med-text); }
+    .stat-card.t-high .stat-card-value { color: var(--high-text); }
+
+    /* Two-column */
+    .two-col {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.2rem; margin-bottom: 1.4rem;
+      animation: fadeSlideDown 0.7s 0.18s ease both;
+    }
+
+    /* Generic card */
+    .card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
+    .card-hd { padding: 1.3rem 1.5rem 0; display: flex; align-items: flex-start; justify-content: space-between; }
+    .card-hd-left .card-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; }
+    .card-hd-left .card-sub { font-size: 0.77rem; color: var(--muted); margin-top: 0.15rem; }
+    .card-bd { padding: 1.2rem 1.5rem 1.6rem; }
+
+    /* Distribution */
+    .dist-rows { display: flex; flex-direction: column; gap: 1rem; }
+    .dist-row-lbl { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.38rem; }
+    .dist-row-lbl span:first-child { font-weight: 500; }
+    .dist-row-lbl span:last-child  { color: var(--muted); }
+    .bar-track { height: 9px; background: #f0e8df; border-radius: 99px; overflow: hidden; }
+    .bar-fill   { height: 100%; border-radius: 99px; transition: width 1.1s cubic-bezier(.22,.61,.36,1); }
+    .bar-fill.low     { background: linear-gradient(90deg, #81b29a, #a8d5be); }
+    .bar-fill.medium  { background: linear-gradient(90deg, #f2cc8f, #e8a84a); }
+    .bar-fill.high    { background: linear-gradient(90deg, #e07a5f, #c0392b); }
+    .bar-fill.no-data { background: #ddd; }
+    .dist-footer { margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--muted); }
+    .dist-footer strong { color: var(--text); }
+
+    /* Avg badge inside card header */
+    /* FIX: avg_score is now a standalone template variable, not distribution.avg_score */
+    .avg-badge { text-align: right; }
+    .avg-badge .lbl { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .avg-badge .val { font-family: 'Playfair Display', serif; font-size: 1.7rem; font-weight: 700; color: var(--accent1); line-height: 1.1; }
+    .avg-badge .unit { font-size: 0.7rem; color: var(--muted); }
+
+    /* Chart */
+    .chart-wrap { position: relative; height: 196px; }
+
+    /* Alert list */
+    .alert-card { animation: fadeSlideDown 0.7s 0.26s ease both; }
+    .alert-hd {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.3rem 1.5rem; border-bottom: 1px solid var(--border);
+    }
+    .alert-title-row { display: flex; align-items: center; gap: 0.55rem; }
+    .alert-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; }
+    .count-pill {
+      padding: 0.18rem 0.55rem; border-radius: 99px; font-size: 0.72rem; font-weight: 600;
+      background: var(--high-bg); color: var(--high-text); border: 1px solid var(--high-border);
+    }
+    .view-all { font-size: 0.8rem; color: var(--accent1); text-decoration: none; font-weight: 500; }
+    .view-all:hover { text-decoration: underline; }
+
+    .emp-row {
+      display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border); transition: background 0.15s;
+    }
+    .emp-row:last-child { border-bottom: none; }
+    .emp-row:hover { background: #fdf9f6; }
+    .avatar {
+      width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 700; color: #fff;
+    }
+    .emp-info { flex: 1; min-width: 0; }
+    .emp-name { font-size: 0.9rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .emp-dept { font-size: 0.76rem; color: var(--muted); }
+    .lbl-badge { display: inline-block; padding: 0.22rem 0.65rem; border-radius: 20px; font-size: 0.73rem; font-weight: 500; flex-shrink: 0; }
+    .lbl-badge.high   { background: var(--high-bg); color: var(--high-text); border: 1.5px solid var(--high-border); }
+    .score-col { text-align: right; flex-shrink: 0; min-width: 52px; }
+    .score-num { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; color: var(--accent1); }
+    .score-date { font-size: 0.72rem; color: var(--muted); }
+
+    .empty-state { padding: 2.8rem 1.5rem; text-align: center; }
+    .empty-state .empty-icon { font-size: 2.2rem; margin-bottom: 0.5rem; }
+    .empty-state p { font-size: 0.9rem; color: var(--muted); }
+
+    footer { text-align: center; padding: 1.5rem; font-size: 0.78rem; color: #c0b4a4; }
+
+    @media (max-width: 800px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .two-col    { grid-template-columns: 1fr; }
+      header      { padding: 1rem 1.2rem; }
+      main        { padding: 2rem 1rem 4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <div class="logo-icon">📊</div>
+    <div class="logo-text">Mind<span>Pulse</span></div>
+  </div>
+  <div class="header-right">
+    <nav class="header-nav">
+      <a href="{{ url_for('manager.manager_dashboard') }}" class="active">Dashboard</a>
+      <a href="{{ url_for('manager.employee_list') }}">Employees</a>
+      <a href="{{ url_for('auth.logout_user') }}">Log out</a>
+    </nav>
+    <div class="header-clock">
+      <div class="clock-dot"></div>
+      <span id="liveClock"></span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="hero">
+    <div class="hero-eyebrow" id="heroDate"></div>
+    <h1>Team <em>Wellbeing</em> Overview</h1>
+    <p class="hero-sub">Real-time burnout insights across your organisation</p>
+  </div>
+
+  <!-- ── Stat cards ── -->
+  <!-- FIX: ``distribution`` is now a direct template variable (unpacked in routes.py) -->
+  <div class="stats-grid">
+
+    <div class="stat-card t-main">
+      <div class="stat-card-icon">👥</div>
+      <div class="stat-card-label">Total Employees</div>
+      <div class="stat-card-value">{{ distribution.total }}</div>
+      <div class="stat-card-sub">{{ distribution.submitted }} responded today</div>
+    </div>
+
+    <div class="stat-card t-low">
+      <div class="stat-card-icon">🟢</div>
+      <div class="stat-card-label">Low Burnout</div>
+      <div class="stat-card-value">{{ distribution.low }}</div>
+      <div class="stat-card-sub">{{ distribution.low_pct }}% of team</div>
+    </div>
+
+    <div class="stat-card t-med">
+      <div class="stat-card-icon">🟡</div>
+      <div class="stat-card-label">Medium Burnout</div>
+      <div class="stat-card-value">{{ distribution.medium }}</div>
+      <div class="stat-card-sub">{{ distribution.medium_pct }}% of team</div>
+    </div>
+
+    <div class="stat-card t-high">
+      <div class="stat-card-icon">🔴</div>
+      <div class="stat-card-label">High Burnout</div>
+      <div class="stat-card-value">{{ distribution.high }}</div>
+      <div class="stat-card-sub">{{ distribution.high_pct }}% of team</div>
+    </div>
+
+  </div>
+
+  <!-- ── Distribution + Trend ── -->
+  <div class="two-col">
+
+    <!-- Distribution -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-hd-left">
+          <div class="card-title">Burnout Distribution</div>
+          <div class="card-sub">Latest snapshot — all employees</div>
+        </div>
+        {# avg_score is a standalone template variable, not inside distribution #}
+        {% if avg_score is not none %}
+        <div class="avg-badge">
+          <div class="lbl">Avg Score</div>
+          <div class="val">{{ avg_score }}</div>
+          <div class="unit">/ 100</div>
+        </div>
+        {% endif %}
+      </div>
+      <div class="card-bd">
+        <div class="dist-rows">
+
+          <div>
+            <div class="dist-row-lbl"><span>🟢 Low</span><span>{{ distribution.low }} ({{ distribution.low_pct }}%)</span></div>
+            <div class="bar-track"><div class="bar-fill low" style="width:{{ distribution.low_pct }}%"></div></div>
+          </div>
+
+          <div>
+            <div class="dist-row-lbl"><span>🟡 Medium</span><span>{{ distribution.medium }} ({{ distribution.medium_pct }}%)</span></div>
+            <div class="bar-track"><div class="bar-fill medium" style="width:{{ distribution.medium_pct }}%"></div></div>
+          </div>
+
+          <div>
+            <div class="dist-row-lbl"><span>🔴 High</span><span>{{ distribution.high }} ({{ distribution.high_pct }}%)</span></div>
+            <div class="bar-track"><div class="bar-fill high" style="width:{{ distribution.high_pct }}%"></div></div>
+          </div>
+
+          <div>
+            {% set nd_pct = (distribution.no_data / distribution.total * 100) | round(1) if distribution.total > 0 else 0 %}
+            <div class="dist-row-lbl"><span>⬜ No Data</span><span>{{ distribution.no_data }} ({{ nd_pct }}%)</span></div>
+            <div class="bar-track"><div class="bar-fill no-data" style="width:{{ nd_pct }}%"></div></div>
+          </div>
+
+        </div>
+        <div class="dist-footer">
+          <span>Total tracked</span>
+          <strong>{{ distribution.total }} employees</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7-day trend chart -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-hd-left">
+          <div class="card-title">7-Day Burnout Trend</div>
+          <div class="card-sub">Company-wide average per day</div>
+        </div>
+      </div>
+      <div class="card-bd">
+        <div class="chart-wrap">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── High-risk employee alert ── -->
+  <!-- FIX: ``high_risk`` is now a direct template variable -->
+  <div class="card alert-card">
+    <div class="alert-hd">
+      <div class="alert-title-row">
+        <span class="alert-title">🚨 High-Risk Employees</span>
+        {% if high_risk %}
+          <span class="count-pill">{{ high_risk | length }}</span>
+        {% endif %}
+      </div>
+      <a class="view-all" href="{{ url_for('manager.employee_list') }}">View all →</a>
+    </div>
+
+    {% if high_risk %}
+      {% for emp in high_risk %}
+      <div class="emp-row">
+        <div class="avatar">{{ emp.name[0] | upper }}</div>
+        <div class="emp-info">
+          <div class="emp-name">{{ emp.name }}</div>
+          <div class="emp-dept">{{ emp.department or 'No department' }}</div>
+        </div>
+        <span class="lbl-badge high">🔴 High</span>
+        <div class="score-col">
+          <div class="score-num">{{ emp.burnout_score if emp.burnout_score is not none else '—' }}</div>
+          <!-- FIX: last_seen is now included in high_risk dicts (added in services.py) -->
+          <div class="score-date">{{ emp.last_seen or 'No date' }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🌿</div>
+        <p>No high-risk employees right now — great work!</p>
+      </div>
+    {% endif %}
+  </div>
+
+</main>
+
+<footer>MindPulse Analytics· Manager Portal · All data stays private</footer>
+
+<script>
+  // Live clock
+  const pad = n => String(n).padStart(2,'0');
+  function tick() {
+    const n = new Date();
+    document.getElementById('liveClock').textContent =
+      `${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
+  }
+  tick(); setInterval(tick, 1000);
+
+  // Hero date
+  const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  (function() {
+    const n = new Date();
+    document.getElementById('heroDate').textContent =
+      `${DAYS[n.getDay()]}, ${MONTHS[n.getMonth()]} ${n.getDate()}, ${n.getFullYear()}`;
+  })();
+
+  // Trend chart
+  // FIX [BUG]: Was ``trend_scores_json | safe`` and ``trend_labels_json | safe``
+  // — those variables were never passed to the template, so the JS arrays were
+  // undefined, crashing Chart.js on every page load.
+  // Now uses ``trend_scores | tojson`` and ``trend_labels | tojson``, which are
+  // the actual variables passed from routes.py.
+  (function() {
+    const scores = {{ trend_scores | tojson }};
+    const labels = {{ trend_labels | tojson }};
+    const ctx = document.getElementById('trendChart').getContext('2d');
+
+    const grad = ctx.createLinearGradient(0, 0, 0, 200);
+    grad.addColorStop(0, 'rgba(224,122,95,0.28)');
+    grad.addColorStop(1, 'rgba(224,122,95,0.00)');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Avg Burnout',
+          data: scores,
+          borderColor: '#e07a5f',
+          backgroundColor: grad,
+          pointBackgroundColor: '#e07a5f',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          borderWidth: 2.5,
+          tension: 0.42,
+          fill: true,
+          spanGaps: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(255,255,255,0.96)',
+            titleColor: '#2d2416',
+            bodyColor: '#8a7a66',
+            borderColor: '#e8ddd0',
+            borderWidth: 1,
+            cornerRadius: 10,
+            padding: 10,
+            callbacks: {
+              label: c => c.parsed.y !== null ? ` Score: ${c.parsed.y}` : ' No data'
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { family: 'DM Sans', size: 11 }, color: '#8a7a66' }
+          },
+          y: {
+            min: 0, max: 100,
+            grid: { color: 'rgba(232,221,208,0.6)' },
+            ticks: { font: { family: 'DM Sans', size: 11 }, color: '#8a7a66' }
+          }
+        }
+      }
+    });
+  })();
+</script>
+</body>
+</html>

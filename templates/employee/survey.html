@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MindPulse — Check-In</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #fdf6ee; --surface: #ffffff; --accent1: #e07a5f; --accent2: #f2cc8f;
+      --accent3: #81b29a; --accent4: #6b8cba; --text: #2d2416; --muted: #8a7a66;
+      --border: #e8ddd0; --shadow: 0 4px 32px rgba(80,50,20,0.10);
+    }
+    html, body { min-height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
+    body {
+      background-image: radial-gradient(ellipse 80% 60% at 10% 0%, #ffe8d620 0%, transparent 60%),
+                        radial-gradient(ellipse 60% 60% at 90% 100%, #d6eadf30 0%, transparent 60%);
+      min-height: 100vh;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 2.5rem; background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(14px); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo-area { display: flex; align-items: center; gap: 0.7rem; }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; box-shadow: 0 2px 12px rgba(224,122,95,0.30);
+    }
+    .logo-text { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+    .logo-text span { color: var(--accent1); }
+    .header-clock { font-size: 0.85rem; color: var(--muted); font-weight: 400; display: flex; align-items: center; gap: 0.4rem; }
+    .clock-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent3); animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.7); } }
+    main { max-width: 680px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+    .hero { text-align: center; margin-bottom: 2.8rem; animation: fadeSlideDown 0.7s ease both; }
+    @keyframes fadeSlideDown { from { opacity:0; transform:translateY(-18px); } to { opacity:1; transform:translateY(0); } }
+    .hero-date { font-size: 0.82rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent1); margin-bottom: 0.6rem; }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 700; line-height: 1.18; color: var(--text); margin-bottom: 0.7rem; }
+    .hero h1 em { font-style: italic; color: var(--accent1); }
+    .hero p { color: var(--muted); font-size: 0.97rem; max-width: 420px; margin: 0 auto; line-height: 1.7; }
+    .window-banner {
+      display: flex; align-items: center; gap: 0.6rem;
+      background: #fff8f0; border: 1px solid #f2cc8f88;
+      border-radius: 10px; padding: 0.65rem 1.1rem;
+      font-size: 0.84rem; color: #7a5c2e;
+      margin-bottom: 2rem; animation: fadeSlideDown 0.7s 0.1s ease both;
+    }
+    .flash-error {
+      background: #fff0ee; border: 1px solid #f0a898; border-radius: 10px;
+      padding: 0.65rem 1.1rem; font-size: 0.85rem; color: #c0392b;
+      margin-bottom: 1.2rem;
+    }
+    .card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; animation: fadeSlideDown 0.7s 0.15s ease both; }
+    .form-inner { padding: 2rem 2rem 1.5rem; }
+    .metric-row {
+      display: flex; align-items: flex-start; gap: 1rem;
+      padding: 1.35rem 0; border-bottom: 1px solid var(--border); transition: background 0.2s;
+    }
+    .metric-row:first-child { padding-top: 0; }
+    .metric-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .metric-icon { width: 46px; height: 46px; flex-shrink: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.45rem; }
+    .icon-happy  { background: #fff0eb; }
+    .icon-motive { background: #fff9eb; }
+    .icon-stress { background: #ffeef0; }
+    .icon-coffee { background: #f0ebe6; }
+    .metric-info { flex: 1; }
+    .metric-label { font-weight: 500; font-size: 0.97rem; color: var(--text); margin-bottom: 0.15rem; }
+    .metric-sub { font-size: 0.8rem; color: var(--muted); line-height: 1.4; margin-bottom: 0.65rem; }
+    .select-wrap { position: relative; display: inline-block; width: 100%; max-width: 260px; }
+    .select-wrap select {
+      appearance: none; width: 100%; padding: 0.52rem 2.4rem 0.52rem 0.9rem;
+      border: 1.5px solid var(--border); border-radius: 10px; background: #fdf8f4;
+      color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+      font-weight: 500; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+    }
+    .select-wrap select:focus { border-color: var(--accent1); box-shadow: 0 0 0 3px rgba(224,122,95,0.12); }
+    .select-wrap select.filled { border-color: var(--accent3); background: #f4faf7; }
+    .select-arrow {
+      position: absolute; right: 0.75rem; top: 50%;
+      transform: translateY(-50%) rotate(0deg);
+      pointer-events: none; color: var(--muted); font-size: 0.7rem; transition: transform 0.2s;
+    }
+    .select-wrap select:focus + .select-arrow { transform: translateY(-50%) rotate(180deg); }
+    .range-pill { display: inline-block; font-size: 0.72rem; font-weight: 500; color: var(--muted); background: #f2ece6; border-radius: 20px; padding: 0.15rem 0.55rem; margin-left: 0.4rem; vertical-align: middle; }
+    .submit-area { padding: 1.5rem 2rem 2rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .btn-submit {
+      flex: 1; min-width: 160px; padding: 0.85rem 1.8rem;
+      background: linear-gradient(135deg, var(--accent1) 0%, #d4614a 100%);
+      color: #fff; border: none; border-radius: 12px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500;
+      cursor: pointer; box-shadow: 0 4px 18px rgba(224,122,95,0.35);
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+    }
+    .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 24px rgba(224,122,95,0.40); }
+    .btn-submit:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .progress-text { font-size: 0.83rem; color: var(--muted); }
+    .closed-overlay {
+      padding: 3rem 2rem; text-align: center; display: flex;
+      flex-direction: column; align-items: center; gap: 1rem;
+    }
+    .closed-icon { font-size: 3rem; }
+    .closed-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: var(--text); }
+    .closed-msg { font-size: 0.92rem; color: var(--muted); line-height: 1.7; }
+    footer { text-align: center; padding: 1.5rem; font-size: 0.78rem; color: #c0b4a4; }
+    @media (max-width: 520px) {
+      header { padding: 1rem 1.2rem; } .logo-text { font-size: 1.1rem; }
+      .form-inner { padding: 1.5rem 1.2rem; } main { padding: 2rem 1rem 4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <div class="logo-icon">📊</div>
+    <div class="logo-text">Mind<span>Pulse</span></div>
+  </div>
+  <div class="header-clock">
+    <div class="clock-dot"></div>
+    <span id="liveClock"></span>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="hero-date" id="heroDate"></div>
+    <h1><em>How are you</em> feeling today?</h1>
+    <p>Take a moment to check in. Your honest responses help us support you better.</p>
+  </div>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="flash-error">⚠️ {{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div id="outsideWindow" style="display:none;">
+    <div class="card">
+      <div class="closed-overlay">
+        <div class="closed-icon">🌙</div>
+        <div class="closed-title">Check-in Closed</div>
+        <div class="closed-msg">The daily check-in window is <strong>9:00 AM – 5:00 PM</strong>.<br>Come back tomorrow morning!</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="formWrapper">
+    <div class="window-banner" id="windowBanner">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#c9920a" stroke-width="1.5"/><path d="M8 4.5v4l2.5 1.5" stroke="#c9920a" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Check-in is open · Window closes at <strong>5:00 PM</strong>
+    </div>
+
+    <div class="card">
+      <form method="POST" action="{{ url_for('employee.submit_survey') }}" id="surveyForm">
+        <div class="form-inner">
+
+          <div class="metric-row">
+            <div class="metric-icon icon-happy">😊</div>
+            <div class="metric-info">
+              <div class="metric-label">Happiness Level <span class="range-pill">1 – 10</span></div>
+              <div class="metric-sub">How happy or content do you feel right now, overall?</div>
+              <div class="select-wrap">
+                <select name="happiness" id="sel-happy" onchange="onSelect(this)" required>
+                  <option value="">— Select —</option>
+                  <option value="1">1 — Very unhappy</option>
+                  <option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                  <option value="5">5 — Neutral</option>
+                  <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                  <option value="10">10 — Very happy</option>
+                </select>
+                <span class="select-arrow">▾</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-icon icon-motive">⚡</div>
+            <div class="metric-info">
+              <div class="metric-label">Motivation Level <span class="range-pill">1 – 10</span></div>
+              <div class="metric-sub">How driven and motivated do you feel to work today?</div>
+              <div class="select-wrap">
+                <select name="motivation" id="sel-motive" onchange="onSelect(this)" required>
+                  <option value="">— Select —</option>
+                  <option value="1">1 — No motivation</option>
+                  <option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                  <option value="5">5 — Moderate</option>
+                  <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                  <option value="10">10 — Fully motivated</option>
+                </select>
+                <span class="select-arrow">▾</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-icon icon-stress">😤</div>
+            <div class="metric-info">
+              <div class="metric-label">Stress Level <span class="range-pill">1 – 10</span></div>
+              <div class="metric-sub">How stressed or overwhelmed are you feeling today?</div>
+              <div class="select-wrap">
+                <select name="stress" id="sel-stress" onchange="onSelect(this)" required>
+                  <option value="">— Select —</option>
+                  <option value="1">1 — Completely calm</option>
+                  <option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                  <option value="5">5 — Moderate</option>
+                  <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                  <option value="10">10 — Extremely stressed</option>
+                </select>
+                <span class="select-arrow">▾</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-icon icon-coffee">☕</div>
+            <div class="metric-info">
+              <div class="metric-label">Caffeine Intake <span class="range-pill">0 – 6 cups</span></div>
+              <div class="metric-sub">How many cups of coffee did you consume today?</div>
+              <div class="select-wrap">
+                <select name="caffeine" id="sel-coffee" onchange="onSelect(this)" required>
+                  <option value="">— Select —</option>
+                  <option value="0">0 — None</option>
+                  <option value="1">1 cup</option><option value="2">2 cups</option>
+                  <option value="3">3 cups</option><option value="4">4 cups</option>
+                  <option value="5">5 cups</option><option value="6">6 cups</option>
+                </select>
+                <span class="select-arrow">▾</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="submit-area">
+          <button type="submit" class="btn-submit" id="submitBtn" disabled>
+            Submit Check-in ✦
+          </button>
+          <div class="progress-text" id="progressText"><strong>0 / 4</strong> fields filled</div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</main>
+
+<footer>MindPulse Analytics· Your personal wellbeing tracker ·</footer>
+
+<script>
+  const pad = n => String(n).padStart(2, '0');
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('liveClock').textContent =
+      `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  const dayNames   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  (function setDate() {
+    const now = new Date();
+    document.getElementById('heroDate').textContent =
+      `${dayNames[now.getDay()]}, ${monthNames[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+  })();
+
+  function getMinutes(d) { return d.getHours() * 60 + d.getMinutes(); }
+  const OPEN_MIN  = 9 * 60;
+  const CLOSE_MIN = 17 * 60 + 1;
+
+  function isWithinWindow() {
+    const m = getMinutes(new Date());
+    return m >= OPEN_MIN && m < CLOSE_MIN;
+  }
+
+  function onSelect(sel) {
+    if (sel.value !== '') sel.classList.add('filled');
+    else sel.classList.remove('filled');
+    updateProgress();
+  }
+
+  const selIds = ['sel-happy', 'sel-motive', 'sel-stress', 'sel-coffee'];
+
+  function filledCount() {
+    return selIds.filter(id => document.getElementById(id).value !== '').length;
+  }
+
+  function updateProgress() {
+    const n = filledCount();
+    document.getElementById('progressText').innerHTML = `<strong>${n} / 4</strong> fields filled`;
+    document.getElementById('submitBtn').disabled = (n < 4);
+  }
+
+  (function checkWindow() {
+    if (!isWithinWindow()) {
+      document.getElementById('outsideWindow').style.display = 'block';
+      document.getElementById('formWrapper').style.display = 'none';
+    }
+  })();
+
+  setInterval(function() {
+    if (!isWithinWindow()) {
+      document.getElementById('outsideWindow').style.display = 'block';
+      document.getElementById('formWrapper').style.display = 'none';
+    }
+  }, 30000);
+</script>
+</body>
+</html>

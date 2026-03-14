@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MindPulse — {{ trend.employee.name }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #fdf6ee; --surface: #ffffff; --accent1: #e07a5f; --accent2: #f2cc8f;
+      --accent3: #81b29a; --accent4: #6b8cba; --text: #2d2416; --muted: #8a7a66;
+      --border: #e8ddd0; --shadow: 0 4px 32px rgba(80,50,20,0.10);
+      --low-bg: #edf7f2; --low-text: #2d7a55; --low-border: #b2dfcc;
+      --med-bg: #fff8ec; --med-text: #9a6500; --med-border: #f2cc8f;
+      --high-bg: #fff0ee; --high-text: #c0392b; --high-border: #f0a898;
+    }
+    html, body { min-height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
+    body {
+      background-image: radial-gradient(ellipse 80% 60% at 10% 0%, #ffe8d620 0%, transparent 60%),
+                        radial-gradient(ellipse 60% 60% at 90% 100%, #d6eadf30 0%, transparent 60%);
+      min-height: 100vh;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────────── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 2.5rem; background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(14px); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo-area { display: flex; align-items: center; gap: 0.7rem; }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; box-shadow: 0 2px 12px rgba(224,122,95,0.30);
+    }
+    .logo-text { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+    .logo-text span { color: var(--accent1); }
+    .header-right { display: flex; align-items: center; gap: 1.4rem; }
+    .header-clock { font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; }
+    .clock-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent3); animation: pulse-dot 2s infinite; }
+    .nav-link { font-size: 0.85rem; font-weight: 500; color: var(--muted); text-decoration: none; padding: 0.35rem 0.8rem; border-radius: 8px; transition: background 0.18s, color 0.18s; }
+    .nav-link:hover { background: var(--border); color: var(--text); }
+    .nav-link.active { background: var(--accent1); color: #fff; }
+    @keyframes pulse-dot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.7); } }
+
+    /* ── Layout ──────────────────────────────────────────────────────────── */
+    main { max-width: 1060px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+    @keyframes fadeSlideDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeSlideUp   { from { opacity:0; transform:translateY(14px);  } to { opacity:1; transform:translateY(0); } }
+
+    /* ── Breadcrumb ───────────────────────────────────────────────────────── */
+    .breadcrumb {
+      display: flex; align-items: center; gap: 0.45rem;
+      font-size: 0.8rem; color: var(--muted); margin-bottom: 1.6rem;
+      animation: fadeSlideDown 0.5s ease both;
+    }
+    .breadcrumb a { color: var(--accent1); text-decoration: none; font-weight: 500; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb-sep { opacity: 0.5; }
+
+    /* ── Employee profile card ────────────────────────────────────────────── */
+    .profile-card {
+      background: var(--surface); border-radius: 22px; border: 1px solid var(--border);
+      box-shadow: var(--shadow); padding: 2rem 2.2rem;
+      display: flex; align-items: flex-start; gap: 1.8rem; flex-wrap: wrap;
+      margin-bottom: 1.4rem;
+      animation: fadeSlideDown 0.6s 0.05s ease both;
+    }
+    .profile-avatar-wrap { flex-shrink: 0; position: relative; }
+    .profile-avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: #fff;
+      box-shadow: 0 4px 18px rgba(80,50,20,0.18);
+    }
+    .profile-avatar.low    { background: linear-gradient(135deg, #81b29a, #5a9e7c); }
+    .profile-avatar.medium { background: linear-gradient(135deg, #e0a940, #c08020); }
+    .profile-avatar.high   { background: linear-gradient(135deg, #e07a5f, #c0392b); }
+    .profile-avatar.no_data { background: linear-gradient(135deg, #c0b4a4, #a09080); }
+    .profile-level-dot {
+      position: absolute; bottom: 3px; right: 3px;
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2.5px solid var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem;
+    }
+    .profile-level-dot.low    { background: var(--accent3); }
+    .profile-level-dot.medium { background: var(--accent2); }
+    .profile-level-dot.high   { background: var(--accent1); }
+    .profile-level-dot.no_data { background: #c0b4a4; }
+
+    .profile-info { flex: 1; min-width: 200px; }
+    .profile-name { font-family: 'Playfair Display', serif; font-size: 1.7rem; font-weight: 700; color: var(--text); line-height: 1.15; margin-bottom: 0.25rem; }
+    .profile-email { font-size: 0.84rem; color: var(--muted); margin-bottom: 0.6rem; }
+    .profile-meta { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+    .dept-tag {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.25rem 0.75rem; background: #f5ede4;
+      border: 1px solid var(--border); border-radius: 20px;
+      font-size: 0.79rem; color: var(--muted); font-weight: 500;
+    }
+    .id-tag {
+      font-size: 0.75rem; color: var(--muted); background: #f8f3ee;
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: 0.22rem 0.6rem; font-family: monospace; letter-spacing: 0.04em;
+    }
+
+    .profile-scores { display: flex; align-items: center; gap: 2rem; margin-left: auto; flex-wrap: wrap; }
+    .score-block { text-align: center; }
+    .score-circle {
+      width: 96px; height: 96px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 18px rgba(224,122,95,0.22);
+      background: conic-gradient(
+        var(--accent2) 0%,
+        var(--accent1) var(--pct, 0%),
+        #eedfd0 var(--pct, 0%) 100%
+      );
+    }
+    .score-inner { width: 68px; height: 68px; background: var(--surface); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .score-number { font-family: 'Playfair Display', serif; font-size: 1.55rem; font-weight: 700; color: var(--text); line-height: 1; }
+    .score-denom  { font-size: 0.58rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 1px; }
+    .score-title  { font-size: 0.73rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 0.4rem; }
+
+    .label-badge { display: inline-block; padding: 0.28rem 0.75rem; border-radius: 20px; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.01em; }
+    .label-badge.low    { background: var(--low-bg);  color: var(--low-text);  border: 1.5px solid var(--low-border);  }
+    .label-badge.medium { background: var(--med-bg);  color: var(--med-text);  border: 1.5px solid var(--med-border);  }
+    .label-badge.high   { background: var(--high-bg); color: var(--high-text); border: 1.5px solid var(--high-border); }
+    .label-badge.no_data{ background: #f4f0ea; color: #8a7a66; border: 1.5px solid #ddd5c8; }
+
+    .avg-block { text-align: center; }
+    .avg-number { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--accent4); line-height: 1; }
+    .avg-title  { font-size: 0.73rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 0.35rem; }
+
+    /* ── Section grid ────────────────────────────────────────────────────── */
+    .section-grid { display: grid; grid-template-columns: 1fr; gap: 1.2rem; }
+
+    /* ── Card base ───────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface); border-radius: 20px; border: 1px solid var(--border);
+      box-shadow: var(--shadow); padding: 1.7rem 1.8rem; overflow: hidden;
+      animation: fadeSlideUp 0.65s ease both;
+    }
+    .card-title {
+      font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700;
+      color: var(--text); margin-bottom: 1.3rem; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .card-title-icon { font-size: 1.1rem; }
+    .card-title-sub { font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 400; color: var(--muted); margin-left: auto; }
+
+    /* ── Trend chart ─────────────────────────────────────────────────────── */
+    .chart-wrap { height: 240px; position: relative; }
+
+    /* ── Mini stat pills row (above chart) ───────────────────────────────── */
+    .chart-stats { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .chart-stat-pill {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.3rem 0.85rem; border-radius: 20px;
+      border: 1px solid var(--border); background: #faf5ef;
+      font-size: 0.8rem; color: var(--muted);
+    }
+    .chart-stat-pill strong { font-weight: 600; color: var(--text); }
+    .pill-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .pill-dot.low    { background: var(--accent3); }
+    .pill-dot.medium { background: var(--accent2); }
+    .pill-dot.high   { background: var(--accent1); }
+
+    /* ── No-data state ───────────────────────────────────────────────────── */
+    .no-data-state { text-align: center; padding: 3rem 2rem; color: var(--muted); }
+    .no-data-emoji { font-size: 2.5rem; display: block; margin-bottom: 0.6rem; }
+
+    /* ── Survey history table ────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 0.8rem 1.1rem; font-size: 0.71rem; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+      background: #fdf6ee; border-bottom: 1px solid var(--border);
+      text-align: left; white-space: nowrap;
+    }
+    thead th:first-child { border-radius: 0; }
+    tbody tr { border-bottom: 1px solid #f5ede4; transition: background 0.14s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #fdf8f3; }
+    td { padding: 0.9rem 1.1rem; font-size: 0.86rem; vertical-align: middle; }
+
+    /* Date cell */
+    .date-cell { font-weight: 500; color: var(--text); white-space: nowrap; }
+    .date-day   { font-size: 0.72rem; color: var(--muted); font-weight: 400; margin-top: 1px; }
+
+    /* Metric cell (happiness / motivation / stress / caffeine) */
+    .metric-cell { display: flex; align-items: center; gap: 0.5rem; }
+    .metric-bar-track { width: 52px; height: 6px; background: #f0e8de; border-radius: 999px; flex-shrink: 0; overflow: hidden; }
+    .metric-bar-fill  { height: 100%; border-radius: 999px; }
+    .metric-bar-fill.happiness  { background: linear-gradient(90deg, #81b29a, #5a9e7c); }
+    .metric-bar-fill.motivation { background: linear-gradient(90deg, #6b8cba, #4a6fa5); }
+    .metric-bar-fill.stress     { background: linear-gradient(90deg, #e07a5f, #c0392b); }
+    .metric-bar-fill.caffeine   { background: linear-gradient(90deg, #f2cc8f, #c49a2a); }
+    .metric-val { font-size: 0.86rem; font-weight: 500; color: var(--text); min-width: 18px; }
+    .metric-na  { font-size: 0.8rem; color: #c0b4a4; }
+
+    /* Score cell in table */
+    .table-score { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+    .table-score.low    { color: #2d7a55; }
+    .table-score.medium { color: #9a6500; }
+    .table-score.high   { color: #c0392b; }
+    .table-score.no_data { color: var(--muted); font-size: 0.9rem; font-family: 'DM Sans', sans-serif; }
+
+    /* Level emoji column */
+    .level-icon { font-size: 1rem; }
+
+    /* Empty table message */
+    .table-empty { text-align: center; padding: 2.5rem; color: var(--muted); font-size: 0.88rem; }
+
+    /* ── Insight ribbon ──────────────────────────────────────────────────── */
+    .insight-ribbon {
+      border-radius: 16px; padding: 1.3rem 1.5rem;
+      display: flex; align-items: flex-start; gap: 0.9rem;
+      margin-bottom: 1.2rem;
+      animation: fadeSlideDown 0.6s 0.12s ease both;
+    }
+    .insight-ribbon.low    { background: var(--low-bg);  border: 1.5px solid var(--low-border);  }
+    .insight-ribbon.medium { background: var(--med-bg);  border: 1.5px solid var(--med-border);  }
+    .insight-ribbon.high   { background: var(--high-bg); border: 1.5px solid var(--high-border); }
+    .insight-ribbon.no_data { background: #f8f3ee; border: 1.5px solid var(--border); }
+    .insight-emoji { font-size: 1.6rem; flex-shrink: 0; margin-top: 1px; }
+    .insight-text  {}
+    .insight-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .insight-title.low    { color: var(--low-text);  }
+    .insight-title.medium { color: var(--med-text);  }
+    .insight-title.high   { color: var(--high-text); }
+    .insight-title.no_data { color: var(--muted); }
+    .insight-body { font-size: 0.86rem; color: var(--muted); line-height: 1.7; }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    footer { text-align: center; padding: 1.5rem; font-size: 0.78rem; color: #c0b4a4; }
+
+    @media (max-width: 680px) {
+      header { padding: 1rem 1.2rem; }
+      .logo-text { font-size: 1.1rem; }
+      main { padding: 1.8rem 0.9rem 4rem; }
+      .profile-card { padding: 1.5rem 1.2rem; gap: 1.2rem; }
+      .profile-scores { gap: 1.2rem; margin-left: 0; }
+      .card { padding: 1.4rem 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <div class="logo-icon">📊</div>
+    <div class="logo-text">Mind<span>Pulse</span></div>
+  </div>
+  <div class="header-right">
+    <nav style="display:flex;gap:0.3rem;">
+      <a href="{{ url_for('manager.manager_dashboard') }}" class="nav-link">Dashboard</a>
+      <a href="{{ url_for('manager.employee_list') }}"     class="nav-link">Employees</a>
+    </nav>
+    <div class="header-clock">
+      <div class="clock-dot"></div>
+      <span id="liveClock"></span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="{{ url_for('manager.manager_dashboard') }}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{{ url_for('manager.employee_list') }}">Employees</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{{ trend.employee.name }}</span>
+  </div>
+
+  <!-- ── Profile card ──────────────────────────────────────────────────── -->
+  <div class="profile-card">
+    <!-- Avatar -->
+    <div class="profile-avatar-wrap">
+      <div class="profile-avatar {{ trend.latest_level }}">
+        {{ trend.employee.name[0] | upper }}
+      </div>
+      <div class="profile-level-dot {{ trend.latest_level }}"></div>
+    </div>
+
+    <!-- Name / meta -->
+    <div class="profile-info">
+      <div class="profile-name">{{ trend.employee.name }}</div>
+      <div class="profile-email">{{ trend.employee.email }}</div>
+      <div class="profile-meta">
+        {% if trend.employee.department %}
+          <span class="dept-tag">🏢 {{ trend.employee.department }}</span>
+        {% else %}
+          <span class="dept-tag">🏢 No department</span>
+        {% endif %}
+        <span class="id-tag">{{ trend.employee.id }}</span>
+
+        <!-- Latest label badge -->
+        {% if trend.latest_level == 'high' %}
+          <span class="label-badge high">🔴 High Burnout</span>
+        {% elif trend.latest_level == 'medium' %}
+          <span class="label-badge medium">🟡 Medium Burnout</span>
+        {% elif trend.latest_level == 'low' %}
+          <span class="label-badge low">🟢 Low Burnout</span>
+        {% else %}
+          <span class="label-badge no_data">⬜ No Data</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Score circles -->
+    <div class="profile-scores">
+      <!-- Latest score -->
+      <div class="score-block">
+        {% if trend.latest_score is not none %}
+          <div class="score-circle" style="--pct: {{ trend.latest_score }}%">
+            <div class="score-inner">
+              <div class="score-number">{{ trend.latest_score }}</div>
+              <div class="score-denom">/ 100</div>
+            </div>
+          </div>
+        {% else %}
+          <div class="score-circle" style="--pct: 0%">
+            <div class="score-inner">
+              <div class="score-number" style="font-size:1.1rem;font-family:'DM Sans',sans-serif;">—</div>
+            </div>
+          </div>
+        {% endif %}
+        <div class="score-title">Latest</div>
+      </div>
+
+      <!-- Divider -->
+      <div style="width:1px;height:70px;background:var(--border);flex-shrink:0;"></div>
+
+      <!-- Weekly average -->
+      <div class="avg-block">
+        <div class="avg-number">
+          {% if trend.avg_score is not none %}{{ trend.avg_score }}{% else %}—{% endif %}
+        </div>
+        <div class="avg-title">7-Day Avg</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Insight ribbon ────────────────────────────────────────────────── -->
+  {% if trend.has_data %}
+    {% if trend.latest_level == 'low' %}
+      <div class="insight-ribbon low">
+        <div class="insight-emoji">🌿</div>
+        <div class="insight-text">
+          <div class="insight-title low">Healthy Zone</div>
+          <div class="insight-body">This employee is managing stress well and maintaining a good balance. Burnout risk is low — continue monitoring to catch early changes. Encouraging regular breaks and celebrating wins helps sustain this healthy state.</div>
+        </div>
+      </div>
+    {% elif trend.latest_level == 'medium' %}
+      <div class="insight-ribbon medium">
+        <div class="insight-emoji">🌤</div>
+        <div class="insight-text">
+          <div class="insight-title medium">Watch Zone</div>
+          <div class="insight-body">Stress levels are rising for this employee. Consider a brief check-in to understand their workload. Suggesting structured breaks, reduced multitasking, and clear priorities can help prevent escalation to high burnout.</div>
+        </div>
+      </div>
+    {% elif trend.latest_level == 'high' %}
+      <div class="insight-ribbon high">
+        <div class="insight-emoji">🔥</div>
+        <div class="insight-text">
+          <div class="insight-title high">Action Needed</div>
+          <div class="insight-body">This employee is showing a high burnout risk. Immediate attention is recommended — schedule a one-on-one to discuss workload, boundaries, and support options. Consider redistributing tasks and exploring recovery strategies before this affects performance or wellbeing.</div>
+        </div>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="insight-ribbon no_data">
+      <div class="insight-emoji">📋</div>
+      <div class="insight-text">
+        <div class="insight-title no_data">No Survey Data</div>
+        <div class="insight-body">This employee has not submitted any surveys in the last 7 days. Burnout level cannot be assessed. Please encourage them to fill in their daily survey to unlock analytics.</div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- ── Section grid ───────────────────────────────────────────────────── -->
+  <div class="section-grid">
+
+    <!-- Burnout trend chart -->
+    <div class="card" style="animation-delay:0.08s;">
+      <div class="card-title">
+        <span class="card-title-icon">📉</span> 7-Day Burnout Trend
+        <span class="card-title-sub">{{ trend.labels[0] if trend.labels else '' }} — {{ trend.labels[-1] if trend.labels else '' }}</span>
+      </div>
+
+      {% if trend.has_data %}
+        <!-- Mini stat pills -->
+        <div class="chart-stats">
+          {% if trend.avg_score is not none %}
+            {% set avg = trend.avg_score %}
+            {% if avg <= 35 %}
+              <div class="chart-stat-pill"><div class="pill-dot low"></div>Weekly avg: <strong>{{ avg }}</strong></div>
+            {% elif avg <= 65 %}
+              <div class="chart-stat-pill"><div class="pill-dot medium"></div>Weekly avg: <strong>{{ avg }}</strong></div>
+            {% else %}
+              <div class="chart-stat-pill"><div class="pill-dot high"></div>Weekly avg: <strong>{{ avg }}</strong></div>
+            {% endif %}
+          {% endif %}
+          {% if trend.latest_score is not none %}
+            <div class="chart-stat-pill">Latest: <strong>{{ trend.latest_score }}</strong></div>
+          {% endif %}
+          <div class="chart-stat-pill">Submissions: <strong>{{ trend.survey_history | length }}</strong> / 7</div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="trendChart"></canvas>
+        </div>
+      {% else %}
+        <div class="no-data-state">
+          <span class="no-data-emoji">📊</span>
+          No burnout data available for this week.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Survey history table -->
+    <div class="card" style="animation-delay:0.14s;">
+      <div class="card-title">
+        <span class="card-title-icon">📋</span> Survey Input History
+        <span class="card-title-sub">Last 7 days · newest first</span>
+      </div>
+
+      {% if trend.survey_history %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>😊 Happiness</th>
+                <th>💪 Motivation</th>
+                <th>😰 Stress</th>
+                <th>☕ Caffeine</th>
+                <th>Burnout Score</th>
+                <th>Level</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in trend.survey_history %}
+              <tr>
+                <!-- Date -->
+                <td>
+                  <div class="date-cell">{{ row.date }}</div>
+                  <div class="date-day" id="day-{{ loop.index }}">—</div>
+                </td>
+
+                <!-- Happiness (1-10) -->
+                <td>
+                  {% if row.happiness is not none %}
+                    <div class="metric-cell">
+                      <div class="metric-bar-track">
+                        <div class="metric-bar-fill happiness" style="width:{{ (row.happiness / 10 * 100) | round }}%"></div>
+                      </div>
+                      <div class="metric-val">{{ row.happiness }}</div>
+                    </div>
+                  {% else %}
+                    <span class="metric-na">—</span>
+                  {% endif %}
+                </td>
+
+                <!-- Motivation (1-10) -->
+                <td>
+                  {% if row.motivation is not none %}
+                    <div class="metric-cell">
+                      <div class="metric-bar-track">
+                        <div class="metric-bar-fill motivation" style="width:{{ (row.motivation / 10 * 100) | round }}%"></div>
+                      </div>
+                      <div class="metric-val">{{ row.motivation }}</div>
+                    </div>
+                  {% else %}
+                    <span class="metric-na">—</span>
+                  {% endif %}
+                </td>
+
+                <!-- Stress (1-10) -->
+                <td>
+                  {% if row.stress is not none %}
+                    <div class="metric-cell">
+                      <div class="metric-bar-track">
+                        <div class="metric-bar-fill stress" style="width:{{ (row.stress / 10 * 100) | round }}%"></div>
+                      </div>
+                      <div class="metric-val">{{ row.stress }}</div>
+                    </div>
+                  {% else %}
+                    <span class="metric-na">—</span>
+                  {% endif %}
+                </td>
+
+                <!-- Caffeine (cups) — max display bar at 5 cups -->
+                <td>
+                  {% if row.caffeine is not none %}
+                    <div class="metric-cell">
+                      <div class="metric-bar-track">
+                        <div class="metric-bar-fill caffeine" style="width:{{ [row.caffeine / 5 * 100, 100] | min | round }}%"></div>
+                      </div>
+                      <div class="metric-val">{{ row.caffeine }}</div>
+                    </div>
+                  {% else %}
+                    <span class="metric-na">—</span>
+                  {% endif %}
+                </td>
+
+                <!-- Burnout score -->
+                <td>
+                  {% if row.burnout_score is not none %}
+                    <span class="table-score {{ row.level }}">{{ row.burnout_score }}</span>
+                    <span style="font-size:0.7rem;color:var(--muted);">/100</span>
+                  {% else %}
+                    <span class="table-score no_data">—</span>
+                  {% endif %}
+                </td>
+
+                <!-- Level icon -->
+                <td>
+                  {% if row.level == 'high' %}
+                    <span class="label-badge high" style="font-size:0.73rem;padding:0.18rem 0.55rem;">🔴 High</span>
+                  {% elif row.level == 'medium' %}
+                    <span class="label-badge medium" style="font-size:0.73rem;padding:0.18rem 0.55rem;">🟡 Med</span>
+                  {% elif row.level == 'low' %}
+                    <span class="label-badge low" style="font-size:0.73rem;padding:0.18rem 0.55rem;">🟢 Low</span>
+                  {% else %}
+                    <span class="label-badge no_data" style="font-size:0.73rem;padding:0.18rem 0.55rem;">⬜ N/A</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="table-empty">
+          <div style="font-size:2rem;margin-bottom:0.5rem;">📭</div>
+          No survey submissions found for this employee in the last 7 days.
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</main>
+
+<footer>MindPulse Analytics· Manager View · All data stays private</footer>
+
+<script>
+  /* ── Clock ── */
+  const pad = n => String(n).padStart(2, '0');
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('liveClock').textContent =
+      `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  }
+  updateClock(); setInterval(updateClock, 1000);
+
+  /* ── Humanise table dates ── */
+  (function() {
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    document.querySelectorAll('.date-cell').forEach((cell, i) => {
+      const iso  = cell.textContent.trim();
+      const el   = document.getElementById('day-' + (i + 1));
+      if (!el || !iso) return;
+      try {
+        const d = new Date(iso + 'T00:00:00');
+        el.textContent = dayNames[d.getDay()];
+      } catch(e) {}
+    });
+  })();
+
+  /* ── Trend chart ── */
+  {% if trend.has_data %}
+  (function() {
+    const labels = {{ trend.labels | tojson }};
+    const scores = {{ trend.scores | tojson }};
+
+    const ctx = document.getElementById('trendChart').getContext('2d');
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+    gradient.addColorStop(0,   'rgba(224,122,95,0.28)');
+    gradient.addColorStop(1,   'rgba(224,122,95,0.00)');
+
+    const pointColors = scores.map(s => {
+      if (s === null || s === undefined) return 'transparent';
+      if (s <= 35)  return '#81b29a';
+      if (s <= 65)  return '#f2cc8f';
+      return '#e07a5f';
+    });
+
+    const pointBorderColors = scores.map(s => {
+      if (s === null || s === undefined) return 'transparent';
+      return '#ffffff';
+    });
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Burnout Score',
+          data: scores,
+          borderColor: '#e07a5f',
+          borderWidth: 2.5,
+          pointBackgroundColor: pointColors,
+          pointBorderColor: pointBorderColors,
+          pointBorderWidth: 2,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          fill: true,
+          backgroundColor: gradient,
+          tension: 0.42,
+          spanGaps: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#2d2416',
+            titleColor: '#f2cc8f',
+            bodyColor: '#e8ddd0',
+            padding: 12,
+            cornerRadius: 10,
+            callbacks: {
+              title: ctx => ctx[0].label,
+              label: ctx => {
+                const v = ctx.raw;
+                if (v === null || v === undefined) return '  No data';
+                const lvl = v <= 35 ? '🟢 Low' : v <= 65 ? '🟡 Medium' : '🔴 High';
+                return `  Score: ${v}  ·  ${lvl}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: '#f0e8de' },
+            ticks: { font: { family: "'DM Sans'", size: 12 }, color: '#8a7a66' }
+          },
+          y: {
+            min: 0, max: 100,
+            grid: { color: '#f0e8de' },
+            ticks: {
+              font: { family: "'DM Sans'", size: 12 }, color: '#8a7a66',
+              callback: v => v + ''
+            }
+          }
+        },
+        animation: { duration: 900, easing: 'easeInOutQuart' }
+      }
+    });
+  })();
+  {% endif %}
+</script>
+</body>
+</html>

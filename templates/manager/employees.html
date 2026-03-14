@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MindPulse — Employee List</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #fdf6ee; --surface: #ffffff; --accent1: #e07a5f; --accent2: #f2cc8f;
+      --accent3: #81b29a; --accent4: #6b8cba; --text: #2d2416; --muted: #8a7a66;
+      --border: #e8ddd0; --shadow: 0 4px 32px rgba(80,50,20,0.10);
+      --low-bg: #edf7f2; --low-text: #2d7a55; --low-border: #b2dfcc;
+      --med-bg: #fff8ec; --med-text: #9a6500; --med-border: #f2cc8f;
+      --high-bg: #fff0ee; --high-text: #c0392b; --high-border: #f0a898;
+    }
+    html, body { min-height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
+    body {
+      background-image: radial-gradient(ellipse 80% 60% at 10% 0%,#ffe8d620 0%,transparent 60%),
+                        radial-gradient(ellipse 60% 60% at 90% 100%,#d6eadf30 0%,transparent 60%);
+      min-height: 100vh;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 2.5rem; background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(14px); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo-area { display: flex; align-items: center; gap: 0.7rem; }
+    .logo-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--accent1), var(--accent2)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 2px 12px rgba(224,122,95,0.30); }
+    .logo-text { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+    .logo-text span { color: var(--accent1); }
+    .header-right { display: flex; align-items: center; gap: 1.4rem; }
+    .header-nav a { font-size: 0.85rem; font-weight: 500; color: var(--muted); text-decoration: none; padding: 0.4rem 0.9rem; border-radius: 8px; transition: background 0.2s, color 0.2s; }
+    .header-nav a:hover, .header-nav a.active { background: rgba(224,122,95,0.12); color: var(--accent1); }
+    .header-clock { font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; }
+    .clock-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent3); animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.7);} }
+    main { max-width: 1060px; margin: 0 auto; padding: 2.8rem 1.5rem 5rem; }
+    .hero { margin-bottom: 2rem; animation: fadeDown 0.7s ease both; }
+    @keyframes fadeDown { from{opacity:0;transform:translateY(-18px);}to{opacity:1;transform:translateY(0);} }
+    .hero-eyebrow { font-size: 0.78rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent1); margin-bottom: 0.45rem; }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.7rem, 4vw, 2.3rem); font-weight: 700; }
+    .hero h1 em { font-style: italic; color: var(--accent1); }
+    .hero-sub { font-size: 0.88rem; color: var(--muted); margin-top: 0.4rem; }
+    .controls { display: flex; gap: 0.85rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.2rem; animation: fadeDown 0.7s 0.12s ease both; }
+    .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 340px; }
+    .search-icon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); font-size: 1rem; pointer-events: none; opacity: 0.45; }
+    #searchInput { width: 100%; padding: 0.62rem 0.9rem 0.62rem 2.4rem; border: 1.5px solid var(--border); border-radius: 12px; background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--text); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    #searchInput:focus { border-color: var(--accent1); box-shadow: 0 0 0 3px rgba(224,122,95,0.15); }
+    #searchInput::placeholder { color: #bbb; }
+    .filter-group { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+    .filter-btn { padding: 0.52rem 1.05rem; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.18s; }
+    .filter-btn:hover { border-color: var(--accent1); color: var(--accent1); background: rgba(224,122,95,0.06); }
+    .filter-btn.active { background: #555; color: #fff; border-color: #555; }
+    .filter-btn.f-high.active   { background: #c0392b; border-color: #c0392b; }
+    .filter-btn.f-medium.active { background: #e8a84a; border-color: #e8a84a; }
+    .filter-btn.f-low.active    { background: var(--accent3); border-color: var(--accent3); }
+    .results-count { font-size: 0.8rem; color: var(--muted); margin-left: auto; white-space: nowrap; }
+    .table-card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; animation: fadeDown 0.7s 0.2s ease both; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    thead tr { background: #fdf9f6; border-bottom: 2px solid var(--border); }
+    th { padding: 0.85rem 1.1rem; text-align: left; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); white-space: nowrap; cursor: pointer; user-select: none; transition: color 0.15s; }
+    th:hover { color: var(--accent1); }
+    th.sorted { color: var(--accent1); }
+    th .si { display: inline-block; margin-left: 0.28rem; opacity: 0.45; }
+    th.sorted .si { opacity: 1; }
+    th.no-sort { cursor: default; }
+    th.no-sort:hover { color: var(--muted); }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #fdf9f6; }
+    tbody tr.hidden { display: none; }
+    td { padding: 0.95rem 1.1rem; font-size: 0.87rem; vertical-align: middle; }
+    .name-cell { display: flex; align-items: center; gap: 0.75rem; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(135deg, var(--accent1), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #fff; }
+    .name-text { font-weight: 500; }
+    .name-email { font-size: 0.75rem; color: var(--muted); }
+    .score-val { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--accent1); }
+    .score-na  { color: #ccc; }
+    .lbl-badge { display: inline-block; padding: 0.22rem 0.65rem; border-radius: 20px; font-size: 0.73rem; font-weight: 500; }
+    .lbl-badge.low    { background: var(--low-bg);  color: var(--low-text);  border: 1.5px solid var(--low-border); }
+    .lbl-badge.medium { background: var(--med-bg);  color: var(--med-text);  border: 1.5px solid var(--med-border); }
+    .lbl-badge.high   { background: var(--high-bg); color: var(--high-text); border: 1.5px solid var(--high-border); }
+    .lbl-badge.no_data{ background: #f4f4f4; color: #888; border: 1.5px solid #ddd; }
+    .dept-chip { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 8px; background: rgba(107,140,186,0.1); color: var(--accent4); font-size: 0.76rem; font-weight: 500; }
+    .dept-none, .date-none { color: #ccc; }
+    .date-text { font-size: 0.82rem; color: var(--muted); }
+    .detail-link { font-size: 0.8rem; font-weight: 500; color: var(--accent1); text-decoration: none; padding: 0.3rem 0.7rem; border-radius: 8px; border: 1.5px solid rgba(224,122,95,0.3); transition: background 0.18s, border-color 0.18s; white-space: nowrap; }
+    .detail-link:hover { background: rgba(224,122,95,0.1); border-color: var(--accent1); }
+    .empty-row td { text-align: center; padding: 3rem; color: var(--muted); font-size: 0.9rem; }
+    .empty-row .ei { font-size: 2rem; display: block; margin-bottom: 0.4rem; }
+    footer { text-align: center; padding: 1.5rem; font-size: 0.78rem; color: #c0b4a4; }
+    @media (max-width: 640px) {
+      header { padding: 1rem 1.2rem; }
+      main   { padding: 2rem 1rem 4rem; }
+      .controls { flex-direction: column; align-items: stretch; }
+      .search-wrap { max-width: 100%; }
+      .results-count { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <div class="logo-icon">📊</div>
+    <div class="logo-text">Mind<span>Pulse</span></div>
+  </div>
+  <div class="header-right">
+    <nav class="header-nav">
+      <a href="{{ url_for('manager.manager_dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('manager.employee_list') }}" class="active">Employees</a>
+    </nav>
+    <div class="header-clock">
+      <div class="clock-dot"></div>
+      <span id="liveClock"></span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="hero">
+    <div class="hero-eyebrow" id="heroDate"></div>
+    <h1><em>Employee</em> Burnout List</h1>
+    <p class="hero-sub">Full team overview — sorted by highest risk first</p>
+  </div>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input id="searchInput" type="text" placeholder="Search by name or department…" autocomplete="off"/>
+    </div>
+    <div class="filter-group">
+      <button class="filter-btn active"   data-filter="all">All</button>
+      <button class="filter-btn f-high"   data-filter="high">🔴 High</button>
+      <button class="filter-btn f-medium" data-filter="medium">🟡 Medium</button>
+      <button class="filter-btn f-low"    data-filter="low">🟢 Low</button>
+      <button class="filter-btn"          data-filter="no_data">⬜ No Data</button>
+    </div>
+    <div class="results-count" id="resultsCount"></div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-wrap">
+      <table id="empTable">
+        <thead>
+          <tr>
+            <th data-col="name">Employee <i class="si">↕</i></th>
+            <th data-col="department">Department <i class="si">↕</i></th>
+            <th data-col="burnout_score">Score <i class="si">↕</i></th>
+            <th data-col="level">Burnout Level <i class="si">↕</i></th>
+            <th data-col="last_seen">Last Survey <i class="si">↕</i></th>
+            <th class="no-sort"></th>
+          </tr>
+        </thead>
+        <tbody id="empBody">
+
+          {% for emp in employees %}
+          <tr
+            data-level="{{ emp.level }}"
+            data-name="{{ emp.name | lower }}"
+            data-department="{{ (emp.department or '') | lower }}"
+            data-burnout_score="{{ emp.burnout_score if emp.burnout_score is not none else -1 }}"
+            data-last_seen="{{ emp.last_seen or '' }}"
+          >
+            <td>
+              <div class="name-cell">
+                <div class="avatar">{{ emp.name[0] | upper }}</div>
+                <div>
+                  <div class="name-text">{{ emp.name }}</div>
+                  <div class="name-email">{{ emp.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              {% if emp.department %}
+                <span class="dept-chip">{{ emp.department }}</span>
+              {% else %}
+                <span class="dept-none">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if emp.burnout_score is not none %}
+                <span class="score-val">{{ emp.burnout_score }}</span>
+              {% else %}
+                <span class="score-na">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if emp.level == 'low' %}
+                <span class="lbl-badge low">🟢 Low</span>
+              {% elif emp.level == 'medium' %}
+                <span class="lbl-badge medium">🟡 Medium</span>
+              {% elif emp.level == 'high' %}
+                <span class="lbl-badge high">🔴 High</span>
+              {% else %}
+                <span class="lbl-badge no_data">⏳ No Data</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if emp.last_seen %}
+                <span class="date-text">{{ emp.last_seen }}</span>
+              {% else %}
+                <span class="date-none">Never</span>
+              {% endif %}
+            </td>
+            <td>
+              <a class="detail-link" href="{{ url_for('manager.employee_detail', employee_id=emp.employee_id) }}">Details →</a>
+            </td>
+          </tr>
+          {% endfor %}
+
+          <tr class="empty-row" id="emptyRow" style="display:none;">
+            <td colspan="6">
+              <span class="ei">🔍</span>
+              No employees match your search or filter.
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<footer>MindPulse Analytics· Manager Portal · All data stays private</footer>
+
+<script>
+  const pad = n => String(n).padStart(2,'0');
+  function tick() {
+    const n = new Date();
+    document.getElementById('liveClock').textContent =
+      pad(n.getHours())+':'+pad(n.getMinutes())+':'+pad(n.getSeconds());
+  }
+  tick(); setInterval(tick, 1000);
+
+  const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  (function(){
+    const n = new Date();
+    document.getElementById('heroDate').textContent =
+      DAYS[n.getDay()]+', '+MONTHS[n.getMonth()]+' '+n.getDate()+', '+n.getFullYear();
+  })();
+
+  const tbody       = document.getElementById('empBody');
+  const emptyRow    = document.getElementById('emptyRow');
+  const countEl     = document.getElementById('resultsCount');
+  const searchInput = document.getElementById('searchInput');
+  const filterBtns  = document.querySelectorAll('.filter-btn');
+  const headers     = document.querySelectorAll('th[data-col]');
+
+  let activeFilter = 'all';
+  let searchTerm   = '';
+  let sortCol      = null;
+  let sortAsc      = true;
+
+  function getDataRows() {
+    return [...tbody.querySelectorAll('tr:not(#emptyRow)')];
+  }
+
+  function applyFilterSearch() {
+    const rows = getDataRows();
+    let vis = 0;
+    rows.forEach(row => {
+      const lvl  = row.dataset.level;
+      const name = row.dataset.name;
+      const dept = row.dataset.department;
+      const fOk  = activeFilter === 'all' || lvl === activeFilter;
+      const sOk  = !searchTerm || name.includes(searchTerm) || dept.includes(searchTerm);
+      if (fOk && sOk) { row.classList.remove('hidden'); vis++; }
+      else              row.classList.add('hidden');
+    });
+    emptyRow.style.display = vis === 0 ? '' : 'none';
+    const total = rows.length;
+    countEl.textContent = vis === total
+      ? total + ' employee' + (total !== 1 ? 's' : '')
+      : vis + ' of ' + total + ' employees';
+  }
+
+  function applySortToDOM() {
+    if (!sortCol) return;
+    const rows = getDataRows();
+    const LEVEL_ORDER = { high: 0, medium: 1, low: 2, no_data: 3 };
+    rows.sort((a, b) => {
+      let va = a.dataset[sortCol] || '';
+      let vb = b.dataset[sortCol] || '';
+      if (sortCol === 'burnout_score') {
+        va = parseFloat(va); vb = parseFloat(vb);
+        if (isNaN(va)) va = sortAsc ? Infinity : -Infinity;
+        if (isNaN(vb)) vb = sortAsc ? Infinity : -Infinity;
+      } else if (sortCol === 'level') {
+        va = LEVEL_ORDER[va] !== undefined ? LEVEL_ORDER[va] : 99;
+        vb = LEVEL_ORDER[vb] !== undefined ? LEVEL_ORDER[vb] : 99;
+      } else {
+        va = va.toLowerCase(); vb = vb.toLowerCase();
+      }
+      if (va < vb) return sortAsc ? -1 : 1;
+      if (va > vb) return sortAsc ?  1 : -1;
+      return 0;
+    });
+    rows.forEach(r => tbody.insertBefore(r, emptyRow));
+  }
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      applyFilterSearch();
+    });
+  });
+
+  searchInput.addEventListener('input', e => {
+    searchTerm = e.target.value.trim().toLowerCase();
+    applyFilterSearch();
+  });
+
+  headers.forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (sortCol === col) { sortAsc = !sortAsc; }
+      else { sortCol = col; sortAsc = true; }
+      headers.forEach(h => { h.classList.remove('sorted'); h.querySelector('.si').textContent = '↕'; });
+      th.classList.add('sorted');
+      th.querySelector('.si').textContent = sortAsc ? '↑' : '↓';
+      applySortToDOM();
+    });
+  });
+
+  applyFilterSearch();
+</script>
+</body>
+</html>

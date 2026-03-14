@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MindPulse — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #fdf6ee; --surface: #ffffff; --accent1: #e07a5f; --accent2: #f2cc8f;
+      --accent3: #81b29a; --accent4: #6b8cba; --text: #2d2416; --muted: #8a7a66;
+      --border: #e8ddd0; --shadow: 0 4px 32px rgba(80,50,20,0.10);
+    }
+    html, body { min-height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
+    body {
+      background-image: radial-gradient(ellipse 80% 60% at 10% 0%, #ffe8d620 0%, transparent 60%),
+                        radial-gradient(ellipse 60% 60% at 90% 100%, #d6eadf30 0%, transparent 60%);
+      min-height: 100vh;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 2.5rem; background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(14px); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo-area { display: flex; align-items: center; gap: 0.7rem; }
+    .logo-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--accent1), var(--accent2)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 2px 12px rgba(224,122,95,0.30); }
+    .logo-text { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+    .logo-text span { color: var(--accent1); }
+    .header-right { display: flex; align-items: center; gap: 1.4rem; }
+    .header-nav a { font-size: 0.85rem; font-weight: 500; color: var(--muted); text-decoration: none; padding: 0.4rem 0.9rem; border-radius: 8px; transition: background 0.2s, color 0.2s; }
+    .header-nav a:hover, .header-nav a.active { background: rgba(224,122,95,0.12); color: var(--accent1); }
+    .header-clock { font-size: 0.85rem; color: var(--muted); font-weight: 400; display: flex; align-items: center; gap: 0.4rem; }
+    .clock-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent3); animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.7); } }
+    main { max-width: 680px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+    .hero { text-align: center; margin-bottom: 2.8rem; animation: fadeSlideDown 0.7s ease both; }
+    @keyframes fadeSlideDown { from { opacity:0; transform:translateY(-18px); } to { opacity:1; transform:translateY(0); } }
+    .hero-date { font-size: 0.82rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent1); margin-bottom: 0.6rem; }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 700; line-height: 1.18; color: var(--text); margin-bottom: 0.7rem; }
+    .hero h1 .greeting-highlight { font-style: italic; color: #fff; background: linear-gradient(135deg, var(--accent1), #d4614a); padding: 0 0.35em; border-radius: 8px; display: inline-block; font-weight: 700; box-shadow: 0 3px 14px rgba(224,122,95,0.35); }
+    .card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; animation: fadeSlideDown 0.7s 0.15s ease both; }
+    .pending-state { padding: 3rem 2rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1.1rem; }
+    .pending-icon { font-size: 3rem; animation: bounceIn 0.6s cubic-bezier(.36,.07,.19,.97) both; }
+    @keyframes bounceIn { 0% { transform: scale(0.3); opacity:0; } 50% { transform: scale(1.1); } 80% { transform: scale(0.95); } 100%{ transform: scale(1); opacity:1; } }
+    .pending-state h4 { font-size: 1.02rem; font-weight: 500; color: var(--muted); line-height: 1.7; max-width: 400px; }
+    .pending-state h4 a { color: var(--accent1); font-weight: 600; text-decoration: none; border-bottom: 2px solid rgba(224,122,95,0.35); transition: border-color 0.2s, color 0.2s; }
+    .pending-state h4 a:hover { color: #d4614a; border-color: #d4614a; }
+    .report-state { padding: 2rem 2rem 2.5rem; display: flex; flex-direction: column; gap: 0; }
+    .report-header { display: flex; align-items: center; gap: 0.9rem; padding-bottom: 1.4rem; border-bottom: 1px solid var(--border); margin-bottom: 1.6rem; }
+    .report-header-icon { font-size: 2.2rem; }
+    .report-header-text h4 { font-size: 0.97rem; font-weight: 500; color: var(--muted); line-height: 1.6; }
+    .score-section { display: flex; align-items: center; gap: 2rem; padding: 1.5rem 0; border-bottom: 1px solid var(--border); margin-bottom: 1.6rem; flex-wrap: wrap; }
+    .score-circle-wrap { position: relative; flex-shrink: 0; }
+    .score-circle { width: 110px; height: 110px; border-radius: 50%; background: conic-gradient(var(--accent2) 0%, var(--accent1) var(--pct), #eedfd0 var(--pct) 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(224,122,95,0.22); }
+    .score-inner { width: 78px; height: 78px; background: var(--surface); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .score-number { font-family: 'Playfair Display', serif; font-size: 1.75rem; font-weight: 700; color: var(--text); line-height: 1; }
+    .score-label-small { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; margin-top: 1px; }
+    .score-info { flex: 1; min-width: 160px; }
+    .score-info-title { font-size: 0.78rem; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    .label-badge { display: inline-block; padding: 0.28rem 0.75rem; border-radius: 20px; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.01em; margin-bottom: 0.45rem; }
+    .label-badge.low    { background: #edf7f2; color: #2d7a55; border: 1.5px solid #b2dfcc; }
+    .label-badge.medium { background: #fff8ec; color: #9a6500; border: 1.5px solid #f2cc8f; }
+    .label-badge.high   { background: #fff0ee; color: #c0392b; border: 1.5px solid #f0a898; }
+    .label-badge.pending{ background: #f4f4f4; color: #888; border: 1.5px solid #ddd; }
+    .score-sublabel { font-size: 0.8rem; color: var(--muted); }
+    .remarks-section { background: #fdf8f3; border: 1px solid var(--border); border-radius: 14px; padding: 1.4rem 1.5rem; }
+    .remarks-header { display: flex; align-items: center; gap: 0.55rem; margin-bottom: 0.7rem; }
+    .remarks-emoji { font-size: 1.3rem; }
+    .remarks-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: var(--text); }
+    .remarks-body { font-size: 0.9rem; color: var(--muted); line-height: 1.75; }
+    .nav-links { display: flex; gap: 1rem; margin-top: 1.8rem; justify-content: center; }
+    .nav-links a { font-size: 0.85rem; font-weight: 500; color: var(--accent1); text-decoration: none; padding: 0.45rem 1.1rem; border-radius: 10px; border: 1.5px solid rgba(224,122,95,0.35); transition: background 0.18s; }
+    .nav-links a:hover { background: rgba(224,122,95,0.1); }
+    footer { text-align: center; padding: 1.5rem; font-size: 0.78rem; color: #c0b4a4; }
+    @media (max-width: 520px) {
+      header { padding: 1rem 1.2rem; } .logo-text { font-size: 1.1rem; }
+      .report-state { padding: 1.5rem 1.2rem 2rem; }
+      .score-section { flex-direction: column; align-items: flex-start; gap: 1.2rem; }
+      main { padding: 2rem 1rem 4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <div class="logo-icon">📊</div>
+    <div class="logo-text">Mind<span>Pulse</span></div>
+  </div>
+  <div class="header-right">
+    <nav class="header-nav">
+      <a href="{{ url_for('employee.employee_dashboard') }}" class="active">Dashboard</a>
+      <a href="{{ url_for('employee.employee_history') }}">History</a>
+      <a href="{{ url_for('auth.logout_user') }}">Log out</a>
+    </nav>
+    <div class="header-clock">
+      <div class="clock-dot"></div>
+      <span id="liveClock"></span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="hero-date" id="heroDate"></div>
+    <h1 id="greetingH1"></h1>
+  </div>
+
+  <div class="card" id="mainCard">
+
+    {% if not submitted %}
+    <div class="pending-state">
+      <div class="pending-icon">📋</div>
+      <h4>
+        You haven't filled today's check-in yet.
+        <a href="{{ url_for('employee.show_survey') }}">Click here</a> to fill it now.
+      </h4>
+    </div>
+
+    {% else %}
+    <div class="report-state">
+      <div class="report-header">
+        <div class="report-header-icon">✅</div>
+        <div class="report-header-text">
+          <h4>Thank you for responding. Your burnout score is shown below.</h4>
+        </div>
+      </div>
+
+      <div class="score-section">
+        <div class="score-circle-wrap">
+          <div class="score-circle" id="scoreCircle"
+            {% if burnout_score != '--' %}style="--pct: {{ burnout_score }}%"{% else %}style="--pct: 0%"{% endif %}>
+            <div class="score-inner">
+              <div class="score-number">{{ burnout_score }}</div>
+              {% if burnout_score != '--' %}<div class="score-label-small">/ 100</div>{% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="score-info">
+          <div class="score-info-title">Burnout Score</div>
+          {% if burnout_score != '--' %}
+            {% set score_int = burnout_score | float %}
+            {% if score_int <= 35 %}
+              <div class="label-badge low">🟢 Low</div>
+              <div class="score-sublabel">You're in great shape!</div>
+            {% elif score_int <= 65 %}
+              <div class="label-badge medium">🟡 Medium</div>
+              <div class="score-sublabel">Time to slow down a little.</div>
+            {% else %}
+              <div class="label-badge high">🔴 High</div>
+              <div class="score-sublabel">Please take action now.</div>
+            {% endif %}
+          {% else %}
+            <div class="label-badge pending">⏳ Pending</div>
+            <div class="score-sublabel">API unavailable — try again later</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="remarks-section">
+        {% if burnout_score != '--' %}
+          {% set score_int = burnout_score | float %}
+          {% if score_int <= 35 %}
+            <div class="remarks-header"><div class="remarks-emoji">🌿</div><div class="remarks-title">Healthy Zone</div></div>
+            <div class="remarks-body">You're managing stress well and maintaining a good balance. Keep prioritizing regular breaks, sleep, and activities that recharge you.</div>
+          {% elif score_int <= 65 %}
+            <div class="remarks-header"><div class="remarks-emoji">🌤</div><div class="remarks-title">Watch Zone</div></div>
+            <div class="remarks-body">Your stress levels are starting to rise. Try scheduling short breaks, reducing multitasking, and focusing on one task at a time.</div>
+          {% else %}
+            <div class="remarks-header"><div class="remarks-emoji">🔥</div><div class="remarks-title">Action Needed</div></div>
+            <div class="remarks-body">Your current stress level suggests a risk of burnout. Prioritize rest, set clear boundaries with work, and consider talking to someone you trust.</div>
+          {% endif %}
+        {% else %}
+          <div class="remarks-header"><div class="remarks-emoji">⚠️</div><div class="remarks-title">Score Unavailable</div></div>
+          <div class="remarks-body">The prediction service was unreachable when you submitted. Your survey response was saved. Check back later or contact your administrator.</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <div class="nav-links">
+    <a href="{{ url_for('employee.employee_history') }}">📈 View Weekly History</a>
+    {% if not submitted %}
+    <a href="{{ url_for('employee.show_survey') }}">📋 Fill Survey</a>
+    {% endif %}
+  </div>
+</main>
+
+<footer>MindPulse Analytics· Your personal wellbeing tracker · All data stays private</footer>
+
+<script>
+  const pad = n => String(n).padStart(2, '0');
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('liveClock').textContent =
+      `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  const dayNames   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  (function setDate() {
+    const now = new Date();
+    document.getElementById('heroDate').textContent =
+      `${dayNames[now.getDay()]}, ${monthNames[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+  })();
+
+  (function setGreeting() {
+    const h = new Date().getHours();
+    let word, emoji;
+    if (h < 12)      { word = 'Morning';   emoji = '🌅'; }
+    else if (h < 17) { word = 'Afternoon'; emoji = '☀️'; }
+    else             { word = 'Evening';   emoji = '🌙'; }
+    document.getElementById('greetingH1').innerHTML =
+      `Good <span class="greeting-highlight">${word}</span> ${emoji}`;
+  })();
+</script>
+</body>
+</html>

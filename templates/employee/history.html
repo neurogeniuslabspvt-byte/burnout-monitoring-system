@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MindPulse — History</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #fdf6ee; --surface: #ffffff; --accent1: #e07a5f; --accent2: #f2cc8f;
+      --accent3: #81b29a; --accent4: #6b8cba; --text: #2d2416; --muted: #8a7a66;
+      --border: #e8ddd0; --shadow: 0 4px 32px rgba(80,50,20,0.10);
+    }
+    html, body { min-height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
+    body {
+      background-image: radial-gradient(ellipse 80% 60% at 10% 0%, #ffe8d620 0%, transparent 60%),
+                        radial-gradient(ellipse 60% 60% at 90% 100%, #d6eadf30 0%, transparent 60%);
+      min-height: 100vh;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 2.5rem; background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(14px); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo-area { display: flex; align-items: center; gap: 0.7rem; }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; box-shadow: 0 2px 12px rgba(224,122,95,0.30);
+    }
+    .logo-text { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+    .logo-text span { color: var(--accent1); }
+    .header-clock { font-size: 0.85rem; color: var(--muted); font-weight: 400; display: flex; align-items: center; gap: 0.4rem; }
+    .clock-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent3); animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.7); } }
+    main { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+    .hero { text-align: center; margin-bottom: 2.8rem; animation: fadeSlideDown 0.7s ease both; }
+    @keyframes fadeSlideDown { from { opacity:0; transform:translateY(-18px); } to { opacity:1; transform:translateY(0); } }
+    .hero-date { font-size: 0.82rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent1); margin-bottom: 0.6rem; }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 700; line-height: 1.18; color: var(--text); margin-bottom: 0.7rem; }
+    .hero h1 .greeting-highlight {
+      font-style: italic; color: #fff;
+      background: linear-gradient(135deg, var(--accent1), #d4614a);
+      padding: 0 0.35em; border-radius: 8px; display: inline-block;
+      font-weight: 700; box-shadow: 0 3px 14px rgba(224,122,95,0.35);
+    }
+    .card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; animation: fadeSlideDown 0.7s 0.15s ease both; margin-bottom: 1.5rem; }
+    .card-header { display: flex; align-items: center; gap: 0.75rem; padding: 1.6rem 2rem 1.3rem; border-bottom: 1px solid var(--border); }
+    .card-header-icon { font-size: 1.4rem; }
+    .card-header-text { flex: 1; }
+    .card-header-text h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.1rem; }
+    .card-header-text p { font-size: 0.82rem; color: var(--muted); }
+    .chart-container { padding: 1.8rem 2rem 1.5rem; }
+    .chart-wrap { position: relative; height: 240px; }
+    .avg-row { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 2rem 1.6rem; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 1rem; }
+    .avg-block { display: flex; align-items: center; gap: 1rem; }
+    .avg-circle { width: 68px; height: 68px; border-radius: 50%; background: conic-gradient(var(--accent2) 0%, var(--accent1) var(--pct), #eedfd0 var(--pct) 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(224,122,95,0.22); flex-shrink: 0; }
+    .avg-circle-inner { width: 48px; height: 48px; background: var(--surface); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .avg-number { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--text); line-height: 1; }
+    .avg-number-sub { font-size: 0.52rem; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .avg-info-title { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
+    .label-badge { display: inline-block; padding: 0.28rem 0.75rem; border-radius: 20px; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.01em; }
+    .label-badge.low { background: #edf7f2; color: #2d7a55; border: 1.5px solid #b2dfcc; }
+    .label-badge.medium { background: #fff8ec; color: #9a6500; border: 1.5px solid #f2cc8f; }
+    .label-badge.high { background: #fff0ee; color: #c0392b; border: 1.5px solid #f0a898; }
+    .label-badge.none { background: #f4f4f4; color: #888; border: 1.5px solid #ddd; }
+    .remarks-card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; animation: fadeSlideDown 0.7s 0.25s ease both; }
+    .remarks-inner { padding: 1.8rem 2rem; }
+    .remarks-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem; }
+    .remarks-emoji { font-size: 1.4rem; }
+    .remarks-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: var(--text); }
+    .remarks-body { font-size: 0.9rem; color: var(--muted); line-height: 1.75; }
+    .no-data { text-align: center; padding: 3rem 2rem; color: var(--muted); font-size: 0.95rem; }
+    footer { text-align: center; padding: 1.5rem; font-size: 0.78rem; color: #c0b4a4; }
+    @media (max-width: 520px) {
+      header { padding: 1rem 1.2rem; } .logo-text { font-size: 1.1rem; }
+      .chart-container { padding: 1.2rem 1rem; } main { padding: 2rem 1rem 4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <div class="logo-icon">📊</div>
+    <div class="logo-text">Mind<span>Pulse</span></div>
+  </div>
+  <div class="header-clock">
+    <div class="clock-dot"></div>
+    <span id="liveClock"></span>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="hero-date" id="heroDate"></div>
+    <h1 id="greetingH1"></h1>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📈</div>
+      <div class="card-header-text">
+        <h3>Burnout Score — This Week</h3>
+        <p>Your daily burnout trend for the current week</p>
+      </div>
+    </div>
+
+    {% if history_scores %}
+    <div class="chart-container">
+      <div class="chart-wrap">
+        <canvas id="burnoutChart"></canvas>
+      </div>
+    </div>
+
+    <div class="avg-row">
+      <div class="avg-block">
+        <div class="avg-circle" style="--pct: {{ avg_score }}%">
+          <div class="avg-circle-inner">
+            <div class="avg-number">{{ avg_score }}</div>
+            <div class="avg-number-sub">avg</div>
+          </div>
+        </div>
+        <div>
+          <div class="avg-info-title">Week Average</div>
+          {% if avg_score is not none %}
+            {% if avg_score <= 35 %}
+              <div class="label-badge low">🟢 Low</div>
+            {% elif avg_score <= 65 %}
+              <div class="label-badge medium">🟡 Medium</div>
+            {% else %}
+              <div class="label-badge high">🔴 High</div>
+            {% endif %}
+          {% else %}
+            <div class="label-badge none">⏳ Pending</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="no-data">📭 No survey responses found for this week.</div>
+    {% endif %}
+  </div>
+
+  <div class="remarks-card">
+    <div class="remarks-inner">
+      {% if avg_score is not none %}
+        {% if avg_score <= 35 %}
+          <div class="remarks-header">
+            <div class="remarks-emoji">🌿</div>
+            <div class="remarks-title">Healthy Zone</div>
+          </div>
+          <div class="remarks-body">Great job this week! Your work patterns suggest a healthy balance between productivity and recovery. Keeping this rhythm will help you stay energized and consistent over time. Try to continue the habits that are working well, such as planning your tasks and taking regular breaks.</div>
+        {% elif avg_score <= 65 %}
+          <div class="remarks-header">
+            <div class="remarks-emoji">🌤</div>
+            <div class="remarks-title">Watch Zone</div>
+          </div>
+          <div class="remarks-body">Your activity this week shows some signs of rising workload or stress, so this is a good time to pause and rebalance. A few small adjustments can help prevent fatigue from building up further. Consider prioritizing your most important tasks and spreading demanding work more evenly across the week.</div>
+        {% else %}
+          <div class="remarks-header">
+            <div class="remarks-emoji">🔥</div>
+            <div class="remarks-title">Action Needed</div>
+          </div>
+          <div class="remarks-body">Your recent work patterns suggest a high level of strain, which may indicate you're under significant pressure. It's important to take this signal seriously and focus on protecting your wellbeing. Consider discussing workload or deadlines with your manager and identifying tasks that can be adjusted or delegated.</div>
+        {% endif %}
+      {% else %}
+        <div class="remarks-header">
+          <div class="remarks-emoji">📭</div>
+          <div class="remarks-title">No Data Yet</div>
+        </div>
+        <div class="remarks-body">Complete your daily check-ins this week to see your weekly burnout trend and personalised remarks here.</div>
+      {% endif %}
+    </div>
+  </div>
+
+</main>
+
+<footer>MindPulse Analytics· Your personal wellbeing tracker · All data stays private</footer>
+
+<script>
+  const BURNOUT_SCORES = {{ history_scores | tojson }};
+  const BURNOUT_LABELS = {{ history_labels | tojson }};
+  const AVG_SCORE = {{ avg_score if avg_score is not none else 'null' }};
+
+  const pad = n => String(n).padStart(2, '0');
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('liveClock').textContent =
+      `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  const dayNames   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  (function setDate() {
+    const now = new Date();
+    document.getElementById('heroDate').textContent =
+      `${dayNames[now.getDay()]}, ${monthNames[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+  })();
+  (function setGreeting() {
+    const h = new Date().getHours();
+    let word, emoji;
+    if (h < 12)      { word = 'Morning';   emoji = '🌅'; }
+    else if (h < 17) { word = 'Afternoon'; emoji = '☀️'; }
+    else             { word = 'Evening';   emoji = '🌙'; }
+    document.getElementById('greetingH1').innerHTML =
+      `Good <span class="greeting-highlight">${word}</span> ${emoji}`;
+  })();
+
+  function getLevel(score) {
+    if (score <= 35) return 'low';
+    if (score <= 65) return 'medium';
+    return 'high';
+  }
+
+  function getBarColors(scores) {
+    return scores.map(s => {
+      const lv = getLevel(s);
+      if (lv === 'low')    return 'rgba(129,178,154,0.85)';
+      if (lv === 'medium') return 'rgba(242,204,143,0.90)';
+      return 'rgba(224,122,95,0.90)';
+    });
+  }
+
+  function getBarBorders(scores) {
+    return scores.map(s => {
+      const lv = getLevel(s);
+      if (lv === 'low')    return '#4d9e7a';
+      if (lv === 'medium') return '#c9920a';
+      return '#d4614a';
+    });
+  }
+
+  if (BURNOUT_SCORES.length > 0) {
+    const ctx = document.getElementById('burnoutChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: BURNOUT_LABELS,
+        datasets: [
+          {
+            label: 'Burnout Score',
+            data: BURNOUT_SCORES,
+            backgroundColor: getBarColors(BURNOUT_SCORES),
+            borderColor: getBarBorders(BURNOUT_SCORES),
+            borderWidth: 2,
+            borderRadius: 10,
+            borderSkipped: false,
+          },
+          {
+            label: 'Average (' + AVG_SCORE + ')',
+            data: Array(BURNOUT_SCORES.length).fill(AVG_SCORE),
+            type: 'line',
+            borderColor: '#6b8cba',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            pointRadius: 0,
+            fill: false,
+            tension: 0,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true, position: 'top', align: 'end',
+            labels: { font: { family: 'DM Sans', size: 12 }, color: '#8a7a66', boxWidth: 14, boxHeight: 14, borderRadius: 4, padding: 14, usePointStyle: true, pointStyle: 'rectRounded' }
+          },
+          tooltip: {
+            backgroundColor: '#fff', titleColor: '#2d2416', bodyColor: '#8a7a66',
+            borderColor: '#e8ddd0', borderWidth: 1, padding: 12,
+            titleFont: { family: 'Playfair Display', size: 13, weight: '700' },
+            bodyFont: { family: 'DM Sans', size: 12 },
+            callbacks: {
+              label: function(ctx) {
+                const score = ctx.parsed.y;
+                if (ctx.datasetIndex === 1) return ' Avg: ' + score;
+                const lv = getLevel(score);
+                return ' Score: ' + score + '  (' + lv.charAt(0).toUpperCase() + lv.slice(1) + ')';
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { family: 'DM Sans', size: 12 }, color: '#8a7a66' }, border: { display: false } },
+          y: {
+            min: 0, max: 100,
+            grid: { color: '#f0e8de', lineWidth: 1 },
+            ticks: { font: { family: 'DM Sans', size: 11 }, color: '#b0a090', stepSize: 25, callback: v => v },
+            border: { display: false }
+          }
+        }
+      }
+    });
+  }
+</script>
+</body>
+</html>

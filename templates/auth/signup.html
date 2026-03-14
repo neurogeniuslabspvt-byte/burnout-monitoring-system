@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MindPulse — Sign Up</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #fdf6ee; --surface: #ffffff; --accent1: #e07a5f; --accent2: #f2cc8f;
+      --accent3: #81b29a; --accent4: #6b8cba; --text: #2d2416; --muted: #8a7a66;
+      --border: #e8ddd0; --shadow: 0 4px 32px rgba(80,50,20,0.10);
+    }
+    html, body { min-height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
+    body {
+      background-image:
+        radial-gradient(ellipse 80% 60% at 10% 0%, #ffe8d620 0%, transparent 60%),
+        radial-gradient(ellipse 60% 60% at 90% 100%, #d6eadf30 0%, transparent 60%);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .card {
+      background: var(--surface); border-radius: 24px; border: 1px solid var(--border);
+      box-shadow: var(--shadow); width: 100%; max-width: 460px; padding: 2.4rem 2.2rem 2rem;
+      animation: fadeSlideDown 0.6s ease both;
+    }
+    @keyframes fadeSlideDown { from { opacity:0; transform:translateY(-18px); } to { opacity:1; transform:translateY(0); } }
+
+    .logo-area { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1.8rem; }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; box-shadow: 0 2px 12px rgba(224,122,95,0.30);
+    }
+    .logo-text { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; color: var(--text); }
+    .logo-text span { color: var(--accent1); }
+
+    h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .subtitle { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.6rem; }
+
+    /* Flash messages */
+    .flash-list { list-style: none; margin-bottom: 1.2rem; }
+    .flash-list li {
+      padding: 0.65rem 1rem; border-radius: 10px; font-size: 0.85rem;
+      background: #fff0ee; color: #c0392b; border: 1px solid #f0a898; margin-bottom: 0.4rem;
+    }
+    .flash-list li.success { background: #edf7f2; color: #2d7a55; border-color: #b2dfcc; }
+
+    /* Role toggle */
+    .role-toggle { display: flex; gap: 0.5rem; margin-bottom: 1.4rem; background: #f5ede4; border-radius: 12px; padding: 0.3rem; }
+    .role-btn {
+      flex: 1; padding: 0.55rem 0; border: none; border-radius: 9px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; background: transparent; color: var(--muted);
+      transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    }
+    .role-btn.active {
+      background: var(--surface); color: var(--accent1);
+      box-shadow: 0 2px 8px rgba(80,50,20,0.10);
+    }
+
+    /* Form fields */
+    .field { margin-bottom: 1rem; }
+    label { display: block; font-size: 0.78rem; font-weight: 500; color: var(--muted); margin-bottom: 0.35rem; letter-spacing: 0.04em; text-transform: uppercase; }
+    input, select {
+      width: 100%; padding: 0.7rem 0.95rem; border: 1.5px solid var(--border); border-radius: 12px;
+      background: #fdf9f6; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: var(--text);
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus { border-color: var(--accent1); box-shadow: 0 0 0 3px rgba(224,122,95,0.15); }
+    input::placeholder { color: #c0b4a4; }
+
+    /* Employee-only and manager-only sections */
+    .employee-only, .manager-only { transition: opacity 0.2s; }
+    .employee-only.hidden, .manager-only.hidden { display: none; }
+
+    .submit-btn {
+      width: 100%; padding: 0.8rem; border: none; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent1), #d4614a);
+      color: #fff; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; margin-top: 0.6rem;
+      box-shadow: 0 4px 14px rgba(224,122,95,0.35);
+      transition: opacity 0.18s, transform 0.18s;
+    }
+    .submit-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+
+    .signin-link { text-align: center; font-size: 0.83rem; color: var(--muted); margin-top: 1.2rem; }
+    .signin-link a { color: var(--accent1); text-decoration: none; font-weight: 600; }
+    .signin-link a:hover { text-decoration: underline; }
+
+    .hint { font-size: 0.75rem; color: var(--muted); margin-top: 0.3rem; }
+
+    footer { margin-top: 2rem; font-size: 0.75rem; color: #c0b4a4; text-align: center; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo-area">
+    <div class="logo-icon">📊</div>
+    <div class="logo-text">Mind<span>Pulse</span></div>
+  </div>
+
+  <h2>Create Account</h2>
+  <p class="subtitle">Join MindPulse to monitor wellbeing.</p>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flash-list">
+        {% for category, message in messages %}
+          <li class="{{ category if category != 'message' else '' }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="{{ url_for('auth.register_user') }}" id="signupForm">
+
+    <!-- Role toggle (hidden input keeps value) -->
+    <input type="hidden" name="role" id="roleInput" value="employee"/>
+    <div class="role-toggle">
+      <button type="button" class="role-btn active" id="btnEmployee" onclick="setRole('employee')">👤 Employee</button>
+      <button type="button" class="role-btn"        id="btnManager"  onclick="setRole('manager')">🏢 Manager</button>
+    </div>
+
+    <!-- Common fields -->
+    <div class="field">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" placeholder="Jane Smith" required/>
+    </div>
+
+    <div class="field">
+      <label for="email">Work Email</label>
+      <input type="email" id="email" name="email" placeholder="jane@company.com" required/>
+    </div>
+
+    <!-- Employee-only: Employee ID + Department -->
+    <div class="employee-only" id="employeeFields">
+      <div class="field">
+        <label for="employee_id">Employee ID</label>
+        <input type="text" id="employee_id" name="employee_id"
+               placeholder="e.g. Ab1@xyz9" maxlength="8"/>
+        <p class="hint">8 characters — must include a letter, number, and special character.</p>
+      </div>
+
+      <div class="field">
+        <label for="department_id">Department</label>
+        <select id="department_id" name="department_id">
+          <option value="">— Select department —</option>
+          {% for dept in departments %}
+            <option value="{{ dept.id }}">{{ dept.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Manager-only: Manager Employee ID -->
+    <div class="manager-only hidden" id="managerFields">
+      <div class="field">
+        <label for="manager_id">Manager Employee ID</label>
+        <input type="text" id="manager_id" name="manager_id"
+               placeholder="e.g. Mg1@abc9" maxlength="8"/>
+        <p class="hint">8 characters — must include a letter, number, and special character.</p>
+      </div>
+    </div>
+
+    <!-- Password fields -->
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password"
+             placeholder="Min 10 chars, upper, lower, number, special" required/>
+    </div>
+
+    <div class="field">
+      <label for="confirm_password">Confirm Password</label>
+      <input type="password" id="confirm_password" name="confirm_password"
+             placeholder="Repeat your password" required/>
+    </div>
+
+    <button type="submit" class="submit-btn">Create Account</button>
+  </form>
+
+  <p class="signin-link">Already have an account? <a href="{{ url_for('auth.login_page') }}">Sign in</a></p>
+</div>
+
+<footer>MindPulse Analytics· Your personal wellbeing tracker</footer>
+
+<script>
+  function setRole(role) {
+    document.getElementById('roleInput').value = role;
+
+    const empBtn   = document.getElementById('btnEmployee');
+    const mgrBtn   = document.getElementById('btnManager');
+    const empFlds  = document.getElementById('employeeFields');
+    const mgrFlds  = document.getElementById('managerFields');
+    const empInput = document.getElementById('employee_id');
+    const mgrInput = document.getElementById('manager_id');
+    const deptSel  = document.getElementById('department_id');
+
+    if (role === 'employee') {
+      empBtn.classList.add('active');
+      mgrBtn.classList.remove('active');
+      empFlds.classList.remove('hidden');
+      mgrFlds.classList.add('hidden');
+      // Enable employee fields; disable manager field so it is completely
+      // excluded from form submission and browser HTML5 validation.
+      empInput.disabled = false;
+      deptSel.disabled  = false;
+      mgrInput.disabled = true;
+      mgrInput.value    = '';
+    } else {
+      mgrBtn.classList.add('active');
+      empBtn.classList.remove('active');
+      mgrFlds.classList.remove('hidden');
+      empFlds.classList.add('hidden');
+      // Enable manager field; disable employee fields so they are completely
+      // excluded from form submission and browser HTML5 validation.
+      mgrInput.disabled = false;
+      empInput.disabled = true;
+      empInput.value    = '';
+      deptSel.disabled  = true;
+    }
+  }
+  // Initialise to employee on page load
+  setRole('employee');
+</script>
+</body>
+</html>
